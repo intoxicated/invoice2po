@@ -1,0 +1,56 @@
+[
+  {
+    "name": "id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Cash drawer shift event ID"
+  },
+  {
+    "name": "shift_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Foreign key to fact_cash_drawer_shift"
+  },
+  {
+    "name": "location_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Location ID"
+  },
+  {
+    "name": "event_type",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Event type: CASH_TENDER_PAYMENT, etc."
+  },
+  {
+    "name": "event_money_amount",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Event money amount in cents"
+  },
+  {
+    "name": "team_member_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Team member ID who triggered the event"
+  },
+  {
+    "name": "date_id",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Date ID (YYYYMMDD format) from created_at"
+  },
+  {
+    "name": "time_id",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Time ID (HHMM format) from created_at"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the event was created"
+  }
+]

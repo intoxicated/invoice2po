@@ -1,0 +1,50 @@
+[
+  {
+    "name": "process_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Unique process ID"
+  },
+  {
+    "name": "process_name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Name of the ETL process"
+  },
+  {
+    "name": "start_time",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Process start time"
+  },
+  {
+    "name": "end_time",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Process end time"
+  },
+  {
+    "name": "status",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Process status (success/failure)"
+  },
+  {
+    "name": "records_processed",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Number of records processed"
+  },
+  {
+    "name": "error_message",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Error message if process failed"
+  },
+  {
+    "name": "metadata",
+    "type": "JSON",
+    "mode": "NULLABLE",
+    "description": "Additional process metadata"
+  }
+] 

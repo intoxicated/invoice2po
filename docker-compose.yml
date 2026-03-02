@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  invoice-bot:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - N8N_APPROVE_WEBHOOK_URL=${N8N_APPROVE_WEBHOOK_URL}
+      - INVOICE_CHANNEL_NAME=${INVOICE_CHANNEL_NAME}

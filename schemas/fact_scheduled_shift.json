@@ -1,0 +1,80 @@
+[
+  {
+    "name": "id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Square shift ID"
+  },
+  {
+    "name": "team_member_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Employee ID"
+  },
+  {
+    "name": "location_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Location ID"
+  },
+  {
+    "name": "job_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Job ID"
+  },
+  {
+    "name": "date_id",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Date ID (YYYYMMDD format)"
+  },
+  {
+    "name": "time_id",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Time ID (HHMM format)"
+  },
+  {
+    "name": "start_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Shift start time"
+  },
+  {
+    "name": "end_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Shift end time"
+  },
+  {
+    "name": "notes",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Shift notes"
+  },
+  {
+    "name": "is_deleted",
+    "type": "BOOLEAN",
+    "mode": "REQUIRED",
+    "description": "Whether shift is deleted"
+  },
+  {
+    "name": "status",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Shift status: DRAFT or PUBLISHED"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the record was last updated"
+  }
+]

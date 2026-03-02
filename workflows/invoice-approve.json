@@ -1,0 +1,188 @@
+{
+  "name": "KpopNara Invoice Approve — Write to BigQuery",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "invoice-approve",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-approve",
+      "name": "Webhook Approve",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300],
+      "webhookId": "invoice-approve"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare PO and line items from approval payload\n// Expected: { approved, line_items: [...], standard_vendor_id, vendor_name }\nconst body = $input.first().json.body || $input.first().json;\nif (!body.approved || !body.line_items?.length) {\n  return [{ json: { approved: false } }];\n}\nconst lineItems = body.line_items;\nconst poId = body.po_id || 'po_' + Date.now();\nconst poNumber = body.po_number || 'INV-' + Date.now();\nconst totalAmount = lineItems.reduce((s, i) => s + (Number(i.total_price) || 0), 0);\nconst vendorName = body.vendor_name || (lineItems[0]?.vendor_name) || 'Vendor';\nreturn [{\n  json: {\n    approved: true,\n    po_id: poId,\n    po_number: poNumber,\n    vendor_name: vendorName,\n    standard_vendor_id: body.standard_vendor_id || '',\n    location_id: body.location_id || 'default',\n    total_amount: totalAmount,\n    currency: body.currency || 'USD',\n    line_items: lineItems.map((li, i) => ({ ...li, po_item_id: poId + '_' + i, po_id: poId }))\n  }\n}];"
+      },
+      "id": "code-prepare",
+      "name": "Prepare Approval Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [{ "id": "a", "leftValue": "={{ $json.approved }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }],
+          "combinator": "and"
+        }
+      },
+      "id": "if-approved",
+      "name": "IF Approved",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "datasetId": "etl_data",
+        "tableId": "dim_purchase_order",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "po_id": "={{ $json.po_id }}",
+            "po_number": "={{ $json.po_number }}",
+            "standard_vendor_id": "={{ $json.standard_vendor_id }}",
+            "location_id": "={{ $json.location_id }}",
+            "status": "ORDERED",
+            "total_amount": "={{ $json.total_amount }}",
+            "currency": "={{ $json.currency }}",
+            "source": "DISCORD_INVOICE"
+          }
+        }
+      },
+      "id": "bq-insert-po",
+      "name": "BigQuery Insert PO",
+      "type": "n8n-nodes-base.googleBigQuery",
+      "typeVersion": 1,
+      "position": [660, 200],
+      "credentials": { "googleBigQueryOAuth2Api": { "id": "BIGQUERY_CREDENTIALS", "name": "BigQuery" } }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "line_items",
+        "options": {}
+      },
+      "id": "split-items",
+      "name": "Split Line Items",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [880, 200]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "datasetId": "etl_data",
+        "tableId": "fact_purchase_order_item",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "po_item_id": "={{ $json.po_item_id }}",
+            "po_id": "={{ $json.po_id }}",
+            "standard_product_id": "={{ $json.standard_product_id }}",
+            "product_name": "={{ $json.product_name || $json.matched_product_name }}",
+            "variation_name": "={{ $json.variant_name || '' }}",
+            "sku": "={{ $json.sku || $json.matched_sku }}",
+            "quantity_ordered": "={{ $json.quantity }}",
+            "unit_price": "={{ $json.unit_price }}",
+            "total_price": "={{ $json.total_price }}",
+            "currency": "USD",
+            "is_matched": true
+          }
+        }
+      },
+      "id": "bq-insert-items",
+      "name": "BigQuery Insert PO Items",
+      "type": "n8n-nodes-base.googleBigQuery",
+      "typeVersion": 1,
+      "position": [1320, 200],
+      "credentials": { "googleBigQueryOAuth2Api": { "id": "BIGQUERY_CREDENTIALS", "name": "BigQuery" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://THRIVE_SYNC_URL.run.app",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ po_item_id: $json.po_item_id, standard_product_id: $json.standard_product_id, product_name: $json.product_name || $json.matched_product_name, sku: $json.sku || $json.matched_sku, upc: $json.upc || '', variation_name: $json.variant_name || '' }) }}",
+        "options": { "timeout": 35000 }
+      },
+      "id": "thrive-sync",
+      "name": "Thrive Sync Product",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 200],
+      "notes": "Replace URL. Deploy: gcloud functions deploy sync_to_thrive --entry-point sync_to_thrive --set-env-vars THRIVE_API_URL=...,THRIVE_USERNAME=...,THRIVE_PASSWORD=..."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://PO_GENERATOR_URL.run.app",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ po_id: $json.po_id, po_number: $json.po_number, vendor_name: $json.vendor_name || 'Vendor', line_items: $json.line_items, total_amount: $json.total_amount }) }}"
+      },
+      "id": "po-generator",
+      "name": "Generate PO Document",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 100],
+      "notes": "Optional: Replace URL with your generate_po Cloud Function. Returns docx binary."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, message: 'Invoice approved and written to BigQuery. PO document generated.' } }}"
+      },
+      "id": "respond-ok",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1540, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, message: 'Approval rejected or invalid payload' } }}"
+      },
+      "id": "respond-reject",
+      "name": "Respond Reject",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [660, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Approve": { "main": [[{ "node": "Prepare Approval Data", "type": "main", "index": 0 }]] },
+    "Prepare Approval Data": { "main": [[{ "node": "IF Approved", "type": "main", "index": 0 }]] },
+    "IF Approved": {
+      "main": [
+        [{ "node": "BigQuery Insert PO", "type": "main", "index": 0 }],
+        [{ "node": "Respond Reject", "type": "main", "index": 0 }]
+      ]
+    },
+    "BigQuery Insert PO": {
+      "main": [
+        [{ "node": "Split Line Items", "type": "main", "index": 0 }],
+        [{ "node": "Generate PO Document", "type": "main", "index": 0 }]
+      ]
+    },
+    "Generate PO Document": { "main": [[]] },
+    "Split Line Items": { "main": [[{ "node": "BigQuery Insert PO Items", "type": "main", "index": 0 }]] },
+    "BigQuery Insert PO Items": { "main": [[{ "node": "Thrive Sync Product", "type": "main", "index": 0 }]] },
+    "Thrive Sync Product": { "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {},
+  "pinData": {}
+}

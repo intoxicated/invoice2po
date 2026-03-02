@@ -1,0 +1,10 @@
+[
+  {"name": "item_id", "type": "STRING", "mode": "REQUIRED", "description": "Unique shipping item ID (shipping_id_si_{seq})"},
+  {"name": "shipping_id", "type": "STRING", "mode": "REQUIRED", "description": "Shipping ID"},
+  {"name": "standard_product_id", "type": "STRING", "mode": "REQUIRED", "description": "Standardized product ID"},
+  {"name": "request_quantity", "type": "FLOAT64", "mode": "REQUIRED", "description": "Requested quantity"},
+  {"name": "sent_quantity", "type": "FLOAT64", "mode": "NULLABLE", "description": "Quantity sent"},
+  {"name": "received_quantity", "type": "FLOAT64", "mode": "NULLABLE", "description": "Quantity received"},
+  {"name": "created_at", "type": "TIMESTAMP", "mode": "REQUIRED", "description": "When the record was created"},
+  {"name": "updated_at", "type": "TIMESTAMP", "mode": "NULLABLE", "description": "When the record was last updated"}
+]

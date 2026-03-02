@@ -1,0 +1,62 @@
+[
+    {
+        "name": "standard_product_id",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Unique standardized product ID"
+    },
+    {
+        "name": "name",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Product name"
+    },
+    {
+        "name": "variation_name",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Product variation name"
+    },
+    {
+        "name": "sku",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Product SKU"
+    },
+    {
+        "name": "upc",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Product UPC"
+    },
+    {
+        "name": "release_date",
+        "type": "DATE",
+        "mode": "NULLABLE",
+        "description": "Product release date"
+    },
+    {
+        "name": "active",
+        "type": "BOOLEAN",
+        "mode": "REQUIRED",
+        "description": "Whether the product is active"
+    },
+    {
+        "name": "added_to_thrive_date",
+        "type": "DATE",
+        "mode": "NULLABLE",
+        "description": "Timestamp when the product was added to Thrive"
+    },
+    {
+        "name": "created_at",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE",
+        "description": "Timestamp when the product was created"
+    },
+    {
+        "name": "updated_at",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE",
+        "description": "Timestamp when the product was last updated"
+    }
+]

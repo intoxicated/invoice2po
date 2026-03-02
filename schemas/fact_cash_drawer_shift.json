@@ -1,0 +1,86 @@
+[
+  {
+    "name": "id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Cash drawer shift ID"
+  },
+  {
+    "name": "location_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Location ID"
+  },
+  {
+    "name": "state",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Shift state: CLOSED, OPEN, etc."
+  },
+  {
+    "name": "opened_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the shift was opened"
+  },
+  {
+    "name": "ended_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the shift ended"
+  },
+  {
+    "name": "closed_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the shift was closed"
+  },
+  {
+    "name": "description",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Shift description"
+  },
+  {
+    "name": "opened_cash_money_amount",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Opening cash amount in cents"
+  },
+  {
+    "name": "expected_cash_money_amount",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Expected cash amount in cents"
+  },
+  {
+    "name": "closed_cash_money_amount",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "Closed cash amount in cents"
+  },
+  {
+    "name": "date_id",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Date ID (YYYYMMDD format) from opened_at"
+  },
+  {
+    "name": "time_id",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Time ID (HHMM format) from opened_at"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the record was last updated"
+  }
+]

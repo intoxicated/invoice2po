@@ -1,0 +1,74 @@
+[
+  {
+    "name": "employee_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Square team member ID"
+  },
+  {
+    "name": "first_name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Employee first name"
+  },
+  {
+    "name": "location_ids",
+    "type": "STRING",
+    "mode": "REPEATED",
+    "description": "Square location IDs"
+  },
+  {
+    "name": "last_name",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Employee last name"
+  },
+  {
+    "name": "email",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Employee email"
+  },
+  {
+    "name": "phone",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Employee phone"
+  },
+  {
+    "name": "is_active",
+    "type": "BOOLEAN",
+    "mode": "REQUIRED",
+    "description": "Whether employee is active"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the record was last updated"
+  },
+  {
+    "name": "hourly_rate",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "Employee hourly rate"
+  },
+  {
+    "name": "job_title",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Employee job title"
+  },
+  {
+    "name": "pay_type",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Employee pay type"
+  }
+] 

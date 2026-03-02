@@ -1,0 +1,146 @@
+[
+  {
+    "name": "po_item_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Unique PO line item ID"
+  },
+  {
+    "name": "po_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Purchase order ID"
+  },
+  {
+    "name": "standard_product_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Standardized product ID (if matched)"
+  },
+  {
+    "name": "product_name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Item name as entered in PO"
+  },
+  {
+    "name": "variation_name",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Product variation (e.g., Ver A, Limited Edition)"
+  },
+  {
+    "name": "item_description",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Item description"
+  },
+  {
+    "name": "sku",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Product SKU"
+  },
+  {
+    "name": "upc",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "UPC/GTIN barcode"
+  },
+  {
+    "name": "quantity_ordered",
+    "type": "INTEGER",
+    "mode": "REQUIRED",
+    "description": "Quantity ordered"
+  },
+  {
+    "name": "quantity_received",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Quantity received"
+  },
+  {
+    "name": "quantity_damaged",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Quantity damaged"
+  },
+  {
+    "name": "unit_price",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Unit price"
+  },
+  {
+    "name": "total_price",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Total price"
+  },
+  {
+    "name": "currency",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Currency code"
+  },
+  {
+    "name": "is_matched",
+    "type": "BOOLEAN",
+    "mode": "REQUIRED",
+    "description": "Whether item has been matched to dim_product"
+  },
+  {
+    "name": "purchase_type",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Purchase type (NEW_RELEASE/RESTOCK/PREORDER/etc.)"
+  },
+  {
+    "name": "release_date",
+    "type": "DATE",
+    "mode": "NULLABLE",
+    "description": "Product release date"
+  },
+  {
+    "name": "shipping_label",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Shipping tracking label"
+  },
+  {
+    "name": "shipping_status",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Shipping status (PENDING/SHIPPED/DELIVERED/etc.)"
+  },
+  {
+    "name": "thrive_product_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Thrive product ID"
+  },
+  {
+    "name": "thrive_variant_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Thrive system variant ID for sync tracking"
+  },
+  {
+    "name": "notes",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Additional notes"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the record was last updated"
+  }
+] 

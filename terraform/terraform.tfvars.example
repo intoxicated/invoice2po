@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars and fill in values
+# terraform.tfvars is typically gitignored for secrets
+
+project_id          = "kpn-platform"
+dataset_id          = "catalog"
+location            = "US"
+dataset_description = "Vendor notation and product catalog cache tables"

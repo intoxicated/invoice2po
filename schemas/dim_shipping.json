@@ -1,0 +1,17 @@
+[
+  {"name": "shipping_id", "type": "STRING", "mode": "REQUIRED", "description": "Unique shipping ID"},
+  {"name": "shipping_type", "type": "STRING", "mode": "REQUIRED", "description": "Transfer type: internal-transfer (store-to-store) or vendor-shipment (vendor-to-store)"},
+  {"name": "from_location_id", "type": "STRING", "mode": "NULLABLE", "description": "Source location ID (store)"},
+  {"name": "from_vendor_id", "type": "STRING", "mode": "NULLABLE", "description": "Source vendor ID (warehouse)"},
+  {"name": "to_location_id", "type": "STRING", "mode": "REQUIRED", "description": "Destination location ID"},
+  {"name": "thrive_id", "type": "STRING", "mode": "NULLABLE", "description": "Thrive internal transfer ID"},
+  {"name": "status", "type": "STRING", "mode": "REQUIRED", "description": "Shipment status (requested/packed/ready-for-pickup/in-transit/partial-received/completed)"},
+  {"name": "priority", "type": "STRING", "mode": "REQUIRED", "description": "Priority (normal/urgent)"},
+  {"name": "delivery_type", "type": "STRING", "mode": "NULLABLE", "description": "dropoff or pickup (chosen by FROM store)"},
+  {"name": "note", "type": "STRING", "mode": "NULLABLE", "description": "Additional notes"},
+  {"name": "request_pickup_date", "type": "DATE", "mode": "NULLABLE", "description": "Requested pickup date (filled by FROM store)"},
+  {"name": "scheduled_pickup_date", "type": "DATE", "mode": "NULLABLE", "description": "Scheduled pickup date (filled by logistics)"},
+  {"name": "created_at", "type": "TIMESTAMP", "mode": "REQUIRED", "description": "When the record was created"},
+  {"name": "packed_at", "type": "TIMESTAMP", "mode": "NULLABLE", "description": "When items were packed"},
+  {"name": "updated_at", "type": "TIMESTAMP", "mode": "NULLABLE", "description": "When the record was last updated"}
+]

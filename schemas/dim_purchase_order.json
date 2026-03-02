@@ -1,0 +1,122 @@
+[
+  {
+    "name": "po_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Unique purchase order ID"
+  },
+  {
+    "name": "po_number",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Purchase order number"
+  },
+  {
+    "name": "standard_vendor_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Standardized vendor ID"
+  },
+  {
+    "name": "location_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Location ID"
+  },
+  {
+    "name": "po_tag",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "PO grouping tag for bulk operations from master sheet"
+  },
+  {
+    "name": "order_date",
+    "type": "DATE",
+    "mode": "NULLABLE",
+    "description": "Order date"
+  },
+  {
+    "name": "status",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "PO status (DRAFT/ORDERED/RECEIVED/CANCELLED)"
+  },
+  {
+    "name": "total_amount",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Total PO amount"
+  },
+  {
+    "name": "currency",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Currency code"
+  },
+  {
+    "name": "notes",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Additional notes"
+  },
+  {
+    "name": "payment_term",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Payment terms (NET30, NET60, etc.)"
+  },
+  {
+    "name": "billing_status",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Billing status (UNPAID/PAID/PARTIAL)"
+  },
+  {
+    "name": "pushed_to_thrive",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE",
+    "description": "Whether PO should be/has been pushed to Thrive (YES/NO from master sheet)"
+  },
+  {
+    "name": "expected_shipping_date",
+    "type": "DATE",
+    "mode": "NULLABLE",
+    "description": "Expected shipping start date"
+  },
+  {
+    "name": "expected_delivery_date",
+    "type": "DATE",
+    "mode": "NULLABLE",
+    "description": "Expected arrival date"
+  },
+  {
+    "name": "actual_delivery_date",
+    "type": "DATE",
+    "mode": "NULLABLE",
+    "description": "Actual delivery date"
+  },
+  {
+    "name": "thrive_po_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Thrive system PO ID for sync tracking"
+  },
+  {
+    "name": "source",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Source of PO creation (MANUAL/BULK_FORM/MASTER_SHEET/API)"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the record was last updated"
+  }
+] 

@@ -1,0 +1,112 @@
+[
+  {
+    "name": "customer_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Customer ID"
+  },
+  {
+    "name": "name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Customer name"
+  },
+  {
+    "name": "address",
+    "type": "RECORD",
+    "mode": "REQUIRED",
+    "description": "Customer address line 1",
+    "fields": [
+      {
+        "name": "city",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Customer city"
+      },
+      {
+        "name": "postal_code",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Customer postal code"
+      },
+      {
+        "name": "state",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Customer state"
+      },
+      {
+        "name": "country",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Customer country"
+      }
+    ]
+  },
+  {
+    "name": "segment_ids",
+    "type": "STRING",
+    "mode": "REPEATED",
+    "description": "Customer segment IDs"
+  },
+  {
+    "name": "email_address",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Customer email"
+  },
+  {
+    "name": "phone_number",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Customer phone"
+  },
+  {
+    "name": "birthday",
+    "type": "DATE",
+    "mode": "NULLABLE",
+    "description": "Customer birthday"
+  },
+  {
+    "name": "group_ids",
+    "type": "STRING",
+    "mode": "REPEATED",
+    "description": "Customer group IDs"
+  },
+  {
+    "name": "is_active",
+    "type": "BOOLEAN",
+    "mode": "REQUIRED",
+    "description": "Whether the customer is active"
+  },
+  {
+    "name": "email_marketing_state",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Email marketing state (e.g., 'subscribed', 'unsubscribed')"
+  },
+  {
+    "name": "phone_marketing_state",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Phone marketing state (e.g., 'subscribed', 'unsubscribed')"
+  },
+  {
+    "name": "source_system",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Source of the customer data (e.g., 'SQUARE', 'SHOPIFY')"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the customer record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the customer record was last updated"
+  }
+]

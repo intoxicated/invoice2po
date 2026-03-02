@@ -1,0 +1,38 @@
+[
+  {
+    "name": "standard_category_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Unique standardized category ID"
+  },
+  {
+    "name": "category_name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Category name"
+  },
+  {
+    "name": "is_top_level",
+    "type": "BOOLEAN",
+    "mode": "REQUIRED",
+    "description": "Whether this is a top-level category"
+  },
+  {
+    "name": "is_active",
+    "type": "BOOLEAN",
+    "mode": "REQUIRED",
+    "description": "Whether category is active"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the record was last updated"
+  }
+] 

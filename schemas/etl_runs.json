@@ -1,0 +1,56 @@
+[
+  {
+    "name": "etl_type",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Type of ETL process (catalog, transaction, inventory, labor, purchase_order)"
+  },
+  {
+    "name": "status",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Status of the ETL run (success, error, partial_success)"
+  },
+  {
+    "name": "records_processed",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Number of records processed"
+  },
+  {
+    "name": "duration_seconds",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Duration of the ETL run in seconds"
+  },
+  {
+    "name": "run_timestamp",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Timestamp when the ETL run started"
+  },
+  {
+    "name": "error_message",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Error message if the ETL run failed"
+  },
+  {
+    "name": "environment",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Environment where the ETL run was executed"
+  },
+  {
+    "name": "service_version",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Version of the ETL service"
+  },
+  {
+    "name": "metadata",
+    "type": "JSON",
+    "mode": "NULLABLE",
+    "description": "Additional metadata about the ETL run"
+  }
+] 

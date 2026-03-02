@@ -1,0 +1,70 @@
+# Local development — n8n + Discord bot + Cloud Functions
+# BigQuery uses gcloud credentials: run `gcloud auth application-default login`
+
+version: "3.8"
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/Los_Angeles
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - cloud-functions
+      - cloud-functions-perplexity
+
+  cloud-functions-perplexity:
+    build:
+      context: ./cloud_function_perplexity
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    env_file: .env.local
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+    volumes:
+      - ${HOME}/.config/gcloud:/root/.config/gcloud:ro
+    restart: "no"
+
+  cloud-functions:
+    build:
+      context: ./cloud_function
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file: .env.local
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+      - LLM_PROVIDER=google
+      - LLM_MODEL=gemini-3-flash-preview
+      - THRIVE_API_URL=${THRIVE_API_URL:-}
+      - THRIVE_USERNAME=${THRIVE_USERNAME:-}
+      - THRIVE_PASSWORD=${THRIVE_PASSWORD:-}
+    volumes:
+      - ${HOME}/.config/gcloud:/root/.config/gcloud:ro
+    restart: "no"
+
+  invoice-bot:
+    build: .
+    restart: "no"
+    env_file: .env.local
+    environment:
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - N8N_WEBHOOK_URL=http://n8n:5678/webhook-test/invoice
+      - N8N_APPROVE_WEBHOOK_URL=http://n8n:5678/webhook-test/invoice-approve
+      - INVOICE_CHANNEL_NAME=${INVOICE_CHANNEL_NAME:-invoices}
+      - BOT_CALLBACK_PORT=9090
+    ports:
+      - "9090:9090"
+    depends_on:
+      - n8n
+
+volumes:
+  n8n_data: {}

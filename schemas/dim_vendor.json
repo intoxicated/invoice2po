@@ -1,0 +1,44 @@
+[
+  {
+    "name": "standard_vendor_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Unique standardized vendor ID"
+  },
+  {
+    "name": "vendor_name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Standardized vendor name"
+  },
+  {
+    "name": "vendor_description",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Vendor description"
+  },
+  {
+    "name": "payment_terms",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Payment terms"
+  },
+  {
+    "name": "thrive_vendor_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Thrive vendor ID"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the record was last updated"
+  }
+] 

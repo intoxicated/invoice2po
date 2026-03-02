@@ -1,0 +1,15 @@
+# Secrets
+.env
+.env.local
+terraform.tfvars
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/

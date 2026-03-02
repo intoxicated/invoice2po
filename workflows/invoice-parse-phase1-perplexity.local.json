@@ -1,0 +1,449 @@
+{
+  "name": "KpopNara Invoice Parse — Phase 1 Perplexity (Local)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "invoice",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "invoice-parse"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate and prepare attachments from Discord bot payload\nconst body = $input.first().json.body || $input.first().json;\nconst attachments = body.attachments || (body.attachment_url ? [{ attachment_url: body.attachment_url, filename: body.filename || 'invoice', content_type: body.content_type || 'image/png', file_size: body.file_size }] : []);\n\nif (!attachments.length) {\n  throw new Error('No attachments in payload');\n}\n\nreturn [{\n  json: {\n    attachments,\n    channel_id: body.channel_id,\n    message_id: body.message_id,\n    author: body.author,\n    message_content: body.message_content || ''\n  }\n}];"
+      },
+      "id": "code-prepare",
+      "name": "Prepare Attachments",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'accepted', channel_id: $json.channel_id, message_id: $json.message_id } }}"
+      },
+      "id": "respond-immediate",
+      "name": "Respond to Webhook (Immediate)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [340, 200]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "attachments",
+        "options": {}
+      },
+      "id": "split-attachments",
+      "name": "Split Attachments",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.attachment_url || $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "download-file",
+      "name": "Download File",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Detect file type: Excel vs image (Claude vision only supports images)\nconst item = $input.first();\nconst binaryKey = Object.keys(item.binary || {})[0] || 'data';\nconst bin = item.binary?.[binaryKey];\nif (!bin) throw new Error('No binary data');\n\nconst mime = (bin.mimeType || '').toLowerCase();\nconst excelTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.ms-excel','application/vnd.oasis.opendocument.spreadsheet'];\nconst isExcel = excelTypes.includes(mime) || /\\.(xlsx|xls|ods)$/i.test(item.json?.filename || '');\n\nreturn [{ json: { ...item.json, isExcel }, binary: item.binary }];"
+      },
+      "id": "code-detect-type",
+      "name": "Detect File Type",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "a",
+              "leftValue": "={{ $json.isExcel }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-excel",
+      "name": "IF Excel",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "inputBinaryField": "data"
+      },
+      "id": "extract-xlsx",
+      "name": "Extract From XLSX",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Excel rows as text and build Claude request (text-only, no image)\nconst items = $input.all();\nconst rows = items.map(i => {\n  const r = i.json?.row || i.json;\n  if (!r || typeof r !== 'object') return null;\n  const vals = Object.keys(r).sort((a,b)=>Number(a)-Number(b)).map(k=>r[k]);\n  return vals.join('\\t');\n}).filter(Boolean);\nconst spreadsheetText = rows.join('\\n');\n\nconst prompt = 'Below is spreadsheet data from a K-pop vendor invoice. Extract all line items. Return ONLY valid JSON, no markdown.\\n\\nFor each line item: vendor_notation, quantity, unit_price, total_price, line_number.\\nFrom header: vendor_name, invoice_number, invoice_date.\\n\\nReturn: { \"vendor_name\": \"...\", \"invoice_number\": \"...\", \"invoice_date\": \"...\", \"line_items\": [{ \"vendor_notation\": \"...\", \"quantity\": 1, \"unit_price\": 18.50, \"total_price\": 18.50 }] }';\n\nconst fullText = 'SPREADSHEET DATA:\\n' + spreadsheetText + '\\n\\n' + prompt;\n\nconst systemMsg = 'You are an invoice extraction assistant for K-pop vendor invoices. Extract ONLY the relevant product line items. Ignore headers, footers, totals, subtotals, shipping, tax, and other non-product rows. Include only rows that represent actual product purchases (quantity, unit price, total price).';\n\nconst requestBody = {\n  model: 'claude-sonnet-4-20250514',\n  max_tokens: 4096,\n  system: systemMsg,\n  messages: [{ role: 'user', content: [{ type: 'text', text: fullText }] }]\n};\n\nreturn [{ json: { requestBody } }];"
+      },
+      "id": "code-build-claude-text",
+      "name": "Build Claude Request (Text)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convert binary to base64 and build Claude request for images\nconst item = $input.first();\nconst binaryKey = Object.keys(item.binary || {})[0] || 'data';\nconst bin = item.binary?.[binaryKey];\nif (!bin) throw new Error('No binary data');\n\nconst buffer = await this.helpers.getBinaryDataBuffer(0, binaryKey);\nconst base64 = buffer.toString('base64');\nlet mimeType = (bin.mimeType || 'image/png').toLowerCase();\nif (mimeType === 'image/jpg') mimeType = 'image/jpeg';\nconst allowed = ['image/jpeg','image/png','image/gif','image/webp'];\nif (!allowed.includes(mimeType)) {\n  throw new Error('Unsupported format: ' + (bin.mimeType || 'unknown') + '. Use image (PNG, JPEG, GIF, WebP) or Excel (XLSX).');\n}\n\nconst prompt = 'Extract all line items from this K-pop vendor invoice. Return ONLY valid JSON, no markdown.\\n\\nFor each line item: vendor_notation, quantity, unit_price, total_price, line_number.\\nFrom header: vendor_name, invoice_number, invoice_date.\\n\\nReturn: { \"vendor_name\": \"...\", \"invoice_number\": \"...\", \"invoice_date\": \"...\", \"line_items\": [{ \"vendor_notation\": \"...\", \"quantity\": 1, \"unit_price\": 18.50, \"total_price\": 18.50 }] }';\n\nconst systemMsg = 'You are an invoice extraction assistant for K-pop vendor invoices. Extract ONLY the relevant product line items. Ignore headers, footers, totals, subtotals, shipping, tax, and other non-product rows. Include only rows that represent actual product purchases (quantity, unit price, total price).';\n\nconst requestBody = {\n  model: 'claude-sonnet-4-20250514',\n  max_tokens: 4096,\n  system: systemMsg,\n  messages: [{\n    role: 'user',\n    content: [\n      { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } },\n      { type: 'text', text: prompt }\n    ]\n  }]\n};\n\nreturn [{ json: { requestBody } }];"
+      },
+      "id": "code-build-claude",
+      "name": "Build Claude Request (Image)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}"
+      },
+      "id": "claude-parse",
+      "name": "Claude Parse Invoice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1780,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "anthropic-api-key",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Claude response and extract line_items\nconst item = $input.first().json;\nlet text = '';\nif (item.content && Array.isArray(item.content)) {\n  const block = item.content.find(c => c.type === 'text');\n  text = block ? block.text : JSON.stringify(item.content);\n} else if (typeof item.text === 'string') {\n  text = item.text;\n} else {\n  text = JSON.stringify(item);\n}\n\nlet json;\nconst match = text.match(/```(?:json)?\\s*([\\s\\S]*?)```/) || text.match(/\\{[\\s\\S]*\\}/);\nif (match) {\n  const raw = match[1] ? match[1].trim() : match[0];\n  json = JSON.parse(raw);\n} else {\n  json = JSON.parse(text);\n}\n\nconst lineItems = json.line_items || [];\nconst vendorName = json.vendor_name || '';\nconst invoiceNumber = json.invoice_number || '';\nconst invoiceDate = json.invoice_date || '';\n\nreturn lineItems.map((li, i) => ({\n  json: {\n    ...li,\n    vendor_name: vendorName,\n    invoice_number: invoiceNumber,\n    invoice_date: invoiceDate,\n    line_number: li.line_number ?? i + 1\n  }\n}));"
+      },
+      "id": "code-parse-response",
+      "name": "Parse Line Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate all line items from all attachments\nconst items = $input.all();\nconst allLineItems = [];\nfor (const item of items) {\n  const j = item.json;\n  if (j && j.vendor_notation) allLineItems.push(j);\n  else if (j && Array.isArray(j)) j.forEach(li => allLineItems.push(li));\n}\nreturn allLineItems.map(li => ({ json: li }));"
+      },
+      "id": "code-merge",
+      "name": "Aggregate Line Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2220,
+        300
+      ],
+      "onError": "continue"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://cloud-functions-perplexity:8081/identify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ vendor_notation: $json.vendor_notation, vendor_name: $json.vendor_name || '', quantity: $json.quantity, unit_price: $json.unit_price, total_price: $json.total_price }) }}"
+      },
+      "id": "ai-identify",
+      "name": "AI Identify Product",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2440,
+        300
+      ],
+      "notes": "Local: points to cloud-functions-perplexity (Perplexity Sonar)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build callback payload for bot to reply to original Discord message\nconst items = $input.all();\nconst lineItems = items.flatMap(i => i.json.line_items || [i.json]);\nconst fromCache = items.filter(i => i.json.from_cache).length;\nconst fromAi = items.filter(i => !i.json.from_cache).length;\nconst discordMessage = `Parsed ${lineItems.length} line items. ${fromCache} from cache, ${fromAi} identified by AI.`;\nconst prep = $('Prepare Attachments').first().json;\nreturn [{ json: {\n  channel_id: prep.channel_id,\n  message_id: prep.message_id,\n  discord_message: discordMessage,\n  line_items: lineItems,\n  standard_vendor_id: lineItems[0]?.standard_vendor_id,\n  vendor_name: lineItems[0]?.vendor_name || ''\n} }];"
+      },
+      "id": "code-callback-payload",
+      "name": "Build Callback Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2660, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://invoice-bot:9090/invoice-callback",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": { "timeout": 10000 }
+      },
+      "id": "http-callback",
+      "name": "Bot Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2880, 300],
+      "notes": "Local: invoice-bot callback. Production: use BOT_CALLBACK_URL env."
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Attachments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Attachments": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook (Immediate)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Attachments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Attachments": {
+      "main": [
+        [
+          {
+            "node": "Download File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File": {
+      "main": [
+        [
+          {
+            "node": "Detect File Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect File Type": {
+      "main": [
+        [
+          {
+            "node": "IF Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Excel": {
+      "main": [
+        [
+          {
+            "node": "Extract From XLSX",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Claude Request (Image)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract From XLSX": {
+      "main": [
+        [
+          {
+            "node": "Build Claude Request (Text)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Claude Request (Text)": {
+      "main": [
+        [
+          {
+            "node": "Claude Parse Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Claude Request (Image)": {
+      "main": [
+        [
+          {
+            "node": "Claude Parse Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Parse Invoice": {
+      "main": [
+        [
+          {
+            "node": "Parse Line Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Line Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Line Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Line Items": {
+      "main": [
+        [
+          {
+            "node": "AI Identify Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Identify Product": {
+      "main": [
+        [
+          {
+            "node": "Build Callback Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Callback Payload": {
+      "main": [
+        [
+          {
+            "node": "Bot Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {}
+}

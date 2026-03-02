@@ -1,0 +1,15 @@
+functions-framework>=3.0.0
+json5>=0.9.0
+google-cloud-bigquery
+python-docx
+requests
+
+# LangChain for model switching
+langchain-core
+langchain-anthropic
+langchain-openai
+langchain-google-genai
+langchain-community
+langchain-perplexity
+langgraph
+ddgs>=9.0.0

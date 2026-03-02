@@ -1,0 +1,18 @@
+[
+  {"name": "packing_id", "type": "STRING", "mode": "REQUIRED", "description": "Unique packing ID (shipping_id_tp_{seq})"},
+  {"name": "shipping_id", "type": "STRING", "mode": "REQUIRED", "description": "Shipping ID"},
+  {"name": "type", "type": "STRING", "mode": "REQUIRED", "description": "Packing type (pallet/carton)"},
+  {"name": "length", "type": "FLOAT64", "mode": "NULLABLE", "description": "Length inches"},
+  {"name": "width", "type": "FLOAT64", "mode": "NULLABLE", "description": "Width"},
+  {"name": "height", "type": "FLOAT64", "mode": "NULLABLE", "description": "Height"},
+  {"name": "weight", "type": "FLOAT64", "mode": "NULLABLE", "description": "Weight lbs"},
+  {"name": "carrier", "type": "STRING", "mode": "NULLABLE", "description": "Carrier (ups/usps/dhl/fedex/etc)"},
+  {"name": "label", "type": "STRING", "mode": "NULLABLE", "description": "GCS path or URL for label PDF/image"},
+  {"name": "tracking", "type": "STRING", "mode": "NULLABLE", "description": "Tracking number"},
+  {"name": "status", "type": "STRING", "mode": "REQUIRED", "description": "Packing status (prepared/picked-up/in-transit/delayed/lost/received)"},
+  {"name": "cost", "type": "NUMERIC", "mode": "NULLABLE", "description": "Shipping cost"},
+  {"name": "meta", "type": "JSON", "mode": "NULLABLE", "description": "Additional metadata"},
+  {"name": "expected_by", "type": "DATE", "mode": "NULLABLE", "description": "Expected delivery date"},
+  {"name": "created_at", "type": "TIMESTAMP", "mode": "REQUIRED", "description": "When the record was created"},
+  {"name": "updated_at", "type": "TIMESTAMP", "mode": "NULLABLE", "description": "When the record was last updated"}
+]

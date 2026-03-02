@@ -1,0 +1,128 @@
+[
+  {
+    "name": "transaction_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Transaction ID"
+  },
+  {
+    "name": "location_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Location ID"
+  },
+  {
+    "name": "date_id",
+    "type": "INTEGER",
+    "mode": "REQUIRED",
+    "description": "Date ID"
+  },
+  {
+    "name": "time_id",
+    "type": "INTEGER",
+    "mode": "REQUIRED",
+    "description": "Time ID"
+  },
+  {
+    "name": "customer_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Source customer ID"
+  },
+  {
+    "name": "source_system",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Source system"
+  },
+  {
+    "name": "state",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Source order state (e.g., COMPLETED, CANCELED)"
+  },
+  {
+    "name": "source_payment_type",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Source payment type"
+  },
+  {
+    "name": "total_amount",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Total transaction amount"
+  },
+  {
+    "name": "total_tax_amount",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Total tax amount"
+  },
+  {
+    "name": "total_discount_amount",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Total discount amount"
+  },
+  {
+    "name": "total_refund_amount",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "Total refund amount applied to the transaction"
+  },
+  {
+    "name": "total_return_amount",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "Total amount of returned items for the transaction"
+  },
+  {
+    "name": "total_shipping_amount",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "Total shipping amount"
+  },
+  {
+    "name": "item_count",
+    "type": "INTEGER",
+    "mode": "REQUIRED",
+    "description": "Number of items"
+  },
+  {
+    "name": "total_quantity",
+    "type": "INTEGER",
+    "mode": "REQUIRED",
+    "description": "Total quantity"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Transaction creation time"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Transaction update time"
+  },
+  {
+    "name": "closed_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Transaction close time"
+  },
+  {
+    "name": "is_weekend",
+    "type": "BOOLEAN",
+    "mode": "REQUIRED",
+    "description": "Whether transaction occurred on weekend"
+  },
+  {
+    "name": "is_holiday",
+    "type": "BOOLEAN",
+    "mode": "REQUIRED",
+    "description": "Whether transaction occurred on holiday"
+  }
+] 

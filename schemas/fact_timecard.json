@@ -1,0 +1,124 @@
+[
+  {
+    "name": "timecard_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Square timecard ID"
+  },
+  {
+    "name": "employee_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Employee ID"
+  },
+  {
+    "name": "location_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Location ID"
+  },
+  {
+    "name": "date_id",
+    "type": "INTEGER",
+    "mode": "REQUIRED",
+    "description": "Date ID"
+  },
+  {
+    "name": "timezone",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Timezone"
+  },
+  {
+    "name": "start_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Shift start time"
+  },
+  {
+    "name": "end_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Shift end time"
+  },
+  {
+    "name": "hourly_rate",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Effective hourly rate"
+  },
+  {
+    "name": "total_hours",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Total hours worked"
+  },
+  {
+    "name": "break_hours",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Total break hours"
+  },
+  {
+    "name": "paid_hours",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Total paid hours"
+  },
+  {
+    "name": "labor_cost",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "Total labor cost"
+  },
+  {
+    "name": "breaks",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "description": "Per-break details for this timecard",
+    "fields": [
+      {
+        "name": "name",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Break name"
+      },
+      {
+        "name": "start_at",
+        "type": "TIMESTAMP",
+        "mode": "REQUIRED",
+        "description": "Break start time"
+      },
+      {
+        "name": "end_at",
+        "type": "TIMESTAMP",
+        "mode": "REQUIRED",
+        "description": "Break end time"
+      },
+      {
+        "name": "expected_duration_minutes",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Expected break duration in minutes"
+      },
+      {
+        "name": "is_paid",
+        "type": "BOOLEAN",
+        "mode": "REQUIRED",
+        "description": "Whether break is paid"
+      }
+    ]
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the record was last updated"
+  }
+] 

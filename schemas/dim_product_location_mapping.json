@@ -1,0 +1,63 @@
+[
+  {
+    "name": "mapping_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Unique mapping identifier (e.g., standard_product_id + location_id + source_product_id)"
+  },
+  {
+    "name": "standard_product_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Reference to standardized product ID"
+  },
+  {
+    "name": "location_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Source location ID (e.g., Square or Shopify location)"
+  },
+  {
+    "name": "source_system",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Originating system for the mapping (e.g., 'SQUARE', 'SHOPIFY')"
+  },
+  {
+    "name": "source_product_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Product/variation identifier from the source system (Square catalog_object_id or Shopify variant/product ID)"
+  },
+  {
+    "name": "source_variant_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Variant identifier from the source system when applicable (e.g., Shopify variant_id)"
+  },
+  {
+    "name": "is_active",
+    "type": "BOOLEAN",
+    "mode": "REQUIRED",
+    "description": "Whether this mapping is currently active"
+  },
+  {
+    "name": "msrp",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "Manufacturer suggested retail price"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the mapping record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the mapping record was last updated"
+  }
+]
+

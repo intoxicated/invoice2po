@@ -1,0 +1,80 @@
+[
+  {
+    "name": "standard_product_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Unique identifier for standardized product"
+  },
+  {
+    "name": "product_name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Product name"
+  },
+  {
+    "name": "product_description",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Product description"
+  },
+  {
+    "name": "variant_name",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Product variant name (e.g., size, color, flavor)"
+  },
+  {
+    "name": "standard_category_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Reference to standardized category"
+  },
+  {
+    "name": "standard_vendor_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Reference to standardized vendor"
+  },
+  {
+    "name": "sku",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Stock keeping unit"
+  },
+  {
+    "name": "upc",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Universal product code"
+  },
+  {
+    "name": "msrp",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "Manufacturer suggested retail price"
+  },
+  {
+    "name": "release_date",
+    "type": "DATE",
+    "mode": "NULLABLE",
+    "description": "Product release date"
+  },
+  {
+    "name": "metadata",
+    "type": "JSON",
+    "mode": "NULLABLE",
+    "description": "Additional metadata in JSON format for flexible product attributes"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Timestamp when record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Timestamp when record was last updated"
+  }
+] 

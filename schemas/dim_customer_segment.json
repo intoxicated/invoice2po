@@ -1,0 +1,38 @@
+[
+  {
+    "name": "segment_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Customer segment ID"
+  },
+  {
+    "name": "name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Customer segment name"
+  },
+  {
+    "name": "source_system",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Source of the customer segment data (e.g., 'SQUARE', 'SHOPIFY')"
+  },
+  {
+    "name": "query",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Query for the customer segment (for shopify)"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the customer segment record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the customer segment record was last updated"
+  }
+]

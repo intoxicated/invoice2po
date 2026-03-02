@@ -1,0 +1,8 @@
+[
+  {"name":"standard_vendor_id","type":"STRING","mode":"REQUIRED","description":"FK to dim_vendor"},
+  {"name":"artist","type":"STRING","mode":"REQUIRED","description":"Artist name for product family lookup"},
+  {"name":"album","type":"STRING","mode":"REQUIRED","description":"Album name for product family lookup"},
+  {"name":"catalog_entries","type":"JSON","mode":"REQUIRED","description":"Full catalog entries [{sku, product_name, variant_name, standard_product_id}]"},
+  {"name":"created_at","type":"TIMESTAMP","mode":"REQUIRED","description":"When the cache was created"},
+  {"name":"updated_at","type":"TIMESTAMP","mode":"NULLABLE","description":"When the cache was last updated"}
+]

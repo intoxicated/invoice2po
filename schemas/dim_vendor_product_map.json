@@ -1,0 +1,15 @@
+[
+  {"name":"standard_vendor_id","type":"STRING","mode":"REQUIRED","description":"FK to dim_vendor"},
+  {"name":"vendor_notation","type":"STRING","mode":"REQUIRED","description":"Product description as written on vendor invoice (e.g. BTS MOTS7 Ver4 CD)"},
+  {"name":"standard_product_id","type":"STRING","mode":"REQUIRED","description":"FK to dim_product"},
+  {"name":"sku","type":"STRING","mode":"REQUIRED","description":"Product SKU (e.g. BTS-MOTS7-V4)"},
+  {"name":"product_name","type":"STRING","mode":"REQUIRED","description":"KpopNara base product name (no variant)"},
+  {"name":"variant_name","type":"STRING","mode":"NULLABLE","description":"Variant (e.g. Version 4, Kiwee, Postcard)"},
+  {"name":"confidence","type":"FLOAT64","mode":"NULLABLE","description":"AI confidence score 0-1"},
+  {"name":"verified_by","type":"STRING","mode":"REQUIRED","description":"human or ai"},
+  {"name":"artist","type":"STRING","mode":"NULLABLE","description":"Pointer to product_catalog_cache (multi-variant only)"},
+  {"name":"album","type":"STRING","mode":"NULLABLE","description":"Pointer to product_catalog_cache (multi-variant only)"},
+  {"name":"invoice_entry_skus","type":"STRING","mode":"REPEATED","description":"Array of SKUs for invoice items when multi-variant (e.g. [SKU1, SKU2]); use [] for single-variant"},
+  {"name":"created_at","type":"TIMESTAMP","mode":"REQUIRED","description":"When the mapping was created"},
+  {"name":"updated_at","type":"TIMESTAMP","mode":"NULLABLE","description":"When the mapping was last updated"}
+]

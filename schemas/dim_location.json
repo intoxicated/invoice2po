@@ -1,0 +1,92 @@
+[
+  {
+    "name": "location_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Unique location ID"
+  },
+  {
+    "name": "location_name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Location name"
+  },
+  {
+    "name": "location_abbreviation",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Location abbreviation/code (e.g., 'SEA' for 'SEATTLE', 'NY' for 'NEW YORK')"
+  },
+  {
+    "name": "location_type",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Type of location (e.g., 'SQUARE', 'SHOPIFY', 'ONLINE', 'POPUP')"
+  },
+  {
+    "name": "parent_location_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Parent location ID"
+  },
+  {
+    "name": "thrive_location_id",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Thrive location ID"
+  },
+  {
+    "name": "address",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Location address"
+  },
+  {
+    "name": "city",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "City"
+  },
+  {
+    "name": "state",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "State"
+  },
+  {
+    "name": "country",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Country"
+  },
+  {
+    "name": "timezone",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Location timezone"
+  },
+  {
+    "name": "is_active",
+    "type": "BOOLEAN",
+    "mode": "REQUIRED",
+    "description": "Whether location is active"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "When the record was created"
+  },
+  {
+    "name": "updated_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "When the record was last updated"
+  },
+  {
+    "name": "discord_webhook_url",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Discord webhook URL"
+  }
+] 

@@ -1,0 +1,8 @@
+[
+    {"name":"event_id","type":"STRING","mode":"REQUIRED","description":"Unique event ID"},
+    {"name":"shipping_id","type":"STRING","mode":"REQUIRED","description":"Shipping ID"},
+    {"name":"type","type":"STRING","mode":"REQUIRED","description":"Event type (shipping_created/shipping_status_changed/etc)"},
+    {"name":"created_at","type":"TIMESTAMP","mode":"REQUIRED","description":"When the event occurred"},
+    {"name":"user_id","type":"STRING","mode":"NULLABLE","description":"User ID who triggered the event (nullable for system events)"},
+    {"name":"data","type":"JSON","mode":"NULLABLE","description":"Event payload (JSON)"}
+]

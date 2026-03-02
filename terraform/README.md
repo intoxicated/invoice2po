@@ -56,7 +56,7 @@ cf_env = {
 }
 ```
 
-`GCP_PROJECT` is set automatically.
+`GCP_PROJECT` and `GCP_BQ_DATASET` (catalog) are set automatically from Terraform variables.
 
 ## IAM
 

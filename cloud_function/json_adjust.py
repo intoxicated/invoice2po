@@ -119,7 +119,37 @@ def _extract_first_json_object(text: str) -> str:
     return text[start:]  # truncated, return as-is for repair
 
 
-def extract_json(text: str) -> dict:
+def _extract_minimal_fallback(raw: str, vendor_notation: str = "") -> dict | None:
+    """
+    Regex-extract minimal valid dict from truncated judge output.
+    Used when all parsers fail, to avoid 500 and allow low-confidence draft.
+    """
+    out = {"vendor_notation": vendor_notation, "confidence": 0.5, "catalog_entries": []}
+    m = re.search(r'"matched_sku"\s*:\s*"([^"]*)"', raw)
+    if m:
+        sku = m.group(1).strip()
+        out["matched_sku"] = sku
+        out["matched_product_name"] = sku.replace("-", " ").replace("_", " ").strip()
+    m = re.search(r'"matched_product_name"\s*:\s*"([^"]*)"', raw)
+    if m:
+        out["matched_product_name"] = m.group(1).strip()
+    m = re.search(r'"standard_product_id"\s*:\s*"([^"]*)"', raw)
+    if m:
+        out["standard_product_id"] = m.group(1).strip()
+    if out.get("matched_sku"):
+        out["catalog_entries"] = [
+            {
+                "sku": out["matched_sku"],
+                "product_name": out.get("matched_product_name", ""),
+                "variant_name": "",
+                "is_invoice_item": True,
+            }
+        ]
+        return out
+    return None
+
+
+def extract_json(text: str, vendor_notation: str = "") -> dict:
     """Extract and parse JSON from LLM response text. Fixes and repairs as needed."""
     text = text.strip()
     match = re.search(r"```(?:json)?\s*([\s\S]*?)```", text)
@@ -133,6 +163,7 @@ def extract_json(text: str) -> dict:
         ("json", lambda s: json.loads(s)),
         ("json+fix", lambda s: json.loads(fix_json(s))),
         ("json+repair", lambda s: json.loads(fix_json(repair_truncated_json(s)))),
+        ("json+repair2", lambda s: json.loads(fix_json(repair_truncated_json(fix_json(repair_truncated_json(s)))))),
     ]
     if json5:
         parsers.append(("json5", lambda s: json5.loads(s)))
@@ -143,6 +174,15 @@ def extract_json(text: str) -> dict:
         except Exception as e:
             last_err = e
             continue
+    # Fallback: regex-extract minimal dict from truncated output
+    fallback = _extract_minimal_fallback(raw, vendor_notation)
+    if fallback:
+        logger.warning(
+            "JSON parse failed; using minimal fallback from truncated output (matched_sku=%s). Full raw: %s",
+            fallback.get("matched_sku", "(none)"),
+            raw,
+        )
+        return fallback
     snippet = raw[max(0, getattr(last_err, "pos", 0) - 60) : getattr(last_err, "pos", 0) + 60] if last_err and hasattr(last_err, "pos") else raw[:200]
-    logger.warning("JSON parse failed after %d attempts: ...%s...", len(parsers), snippet)
+    logger.warning("JSON parse failed after %d attempts. Full raw: %s", len(parsers), raw)
     raise last_err or ValueError(f"No JSON in response: {raw[:200]}...")

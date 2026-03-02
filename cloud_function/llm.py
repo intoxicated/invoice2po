@@ -37,7 +37,7 @@ def get_llm() -> BaseChatModel:
 
         return ChatGoogleGenerativeAI(
             model=model_name,
-            max_output_tokens=8192,
+            max_output_tokens=16384,
             temperature=0,
         )
     if provider == "perplexity":

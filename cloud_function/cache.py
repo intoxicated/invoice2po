@@ -1,17 +1,24 @@
 """
 Product Identification — Cache layer
-- Vendor cache (vendor_product_map): vendor_notation → product mapping (single or pointer to product_catalog_cache)
-- product_catalog_cache: (vendor_id, artist, album) → full catalog_entries (multi-variant only)
+- Vendor cache (dim_vendor_product_map): vendor_notation → product mapping (single or pointer to dim_product_catalog_cache)
+- dim_product_catalog_cache: (vendor_id, artist, album) → full catalog_entries (multi-variant only)
 - Variant knowledge cache (album_variant_knowledge): artist+album → variants (optional)
+
+Dataset and table names match Terraform: catalog.dim_vendor_product_map, catalog.dim_product_catalog_cache
 """
 
 import hashlib
 import json
 import logging
+import os
 
 from google.cloud import bigquery
 
+from sku_formatter import generate_standard_product_id
+
 logger = logging.getLogger(__name__)
+
+_CATALOG_DATASET = os.environ.get("GCP_BQ_DATASET") or "catalog"
 
 
 def get_bq_client():
@@ -19,10 +26,11 @@ def get_bq_client():
     return bigquery.Client(project=project)
 
 def generate_standard_vendor_id(name: str) -> str:
-    """Generate standardized vendor ID."""
+    """Generate standardized vendor ID. Case-insensitive for consistent lookup."""
     if not name or name == "Unknown Vendor":
         return "UNKNOWN_VENDOR"
-    return hashlib.sha256(f"VENDOR_{name}".encode("utf-8")).hexdigest()
+    canonical = (name or "").strip().upper()
+    return hashlib.sha256(f"VENDOR_{canonical}".encode("utf-8")).hexdigest()
 
 def resolve_vendor_id(client: bigquery.Client, vendor_name: str) -> str | None:
     """Resolve vendor_name to standard_vendor_id from dim_vendor."""
@@ -45,17 +53,24 @@ def check_product_catalog_cache(
     artist: str,
     album: str,
 ) -> list[dict] | None:
-    """Fetch catalog_entries from product_catalog_cache. Returns list or None."""
+    """Fetch catalog entries from dim_product_catalog_cache (one row per entry). Returns list or None."""
     project = __import__("os").environ.get("GCP_PROJECT") or "kpn-platform"
     try:
         query = """
-        SELECT catalog_entries
-        FROM `{project}.etl_data.product_catalog_cache`
-        WHERE standard_vendor_id = @vendor_id
-          AND LOWER(TRIM(artist)) = LOWER(TRIM(@artist))
-          AND LOWER(TRIM(album)) = LOWER(TRIM(@album))
-        LIMIT 1
-        """.format(project=project)
+        WITH latest AS (
+          SELECT MAX(catalog_generation) AS gen
+          FROM `{project}.{dataset}.dim_product_catalog_cache`
+          WHERE standard_vendor_id = @vendor_id
+            AND LOWER(TRIM(artist)) = LOWER(TRIM(@artist))
+            AND LOWER(TRIM(album)) = LOWER(TRIM(@album))
+        )
+        SELECT C.sku, C.product_name, C.variant_name, C.standard_product_id
+        FROM `{project}.{dataset}.dim_product_catalog_cache` C
+        INNER JOIN latest L ON C.catalog_generation = L.gen
+        WHERE C.standard_vendor_id = @vendor_id
+          AND LOWER(TRIM(C.artist)) = LOWER(TRIM(@artist))
+          AND LOWER(TRIM(C.album)) = LOWER(TRIM(@album))
+        """.format(project=project, dataset=_CATALOG_DATASET)
         job_config = bigquery.QueryJobConfig(
             query_parameters=[
                 bigquery.ScalarQueryParameter("vendor_id", "STRING", standard_vendor_id),
@@ -66,10 +81,15 @@ def check_product_catalog_cache(
         rows = list(client.query(query, job_config=job_config).result())
         if not rows:
             return None
-        raw = rows[0].catalog_entries
-        if isinstance(raw, str):
-            raw = json.loads(raw)
-        return list(raw) if raw else None
+        return [
+            {
+                "sku": r.sku,
+                "product_name": r.product_name,
+                "variant_name": getattr(r, "variant_name", None) or "",
+                "standard_product_id": r.standard_product_id,
+            }
+            for r in rows
+        ]
     except Exception as e:
         logger.debug("product_catalog_cache lookup skipped: %s", e)
         return None
@@ -94,17 +114,18 @@ def check_vendor_cache(
     client: bigquery.Client, standard_vendor_id: str, vendor_notation: str
 ) -> dict | None:
     """
-    Look up vendor_product_map. Returns mapping dict or None if miss.
+    Look up dim_vendor_product_map. Case-insensitive vendor_notation match. Returns mapping dict or None if miss.
     Single variant: returns {sku, product_name, variant_name, standard_product_id}.
-    Multi variant: returns {catalog_entries, ...} after fetching product_catalog_cache.
+    Multi variant: returns {catalog_entries, ...} after fetching dim_product_catalog_cache.
     """
     if not standard_vendor_id:
         return None
     project = __import__("os").environ.get("GCP_PROJECT") or "kpn-platform"
+    dataset = _CATALOG_DATASET
     query = f"""
     SELECT standard_product_id, sku, product_name, variant_name,
            artist, album, invoice_entry_skus
-    FROM `{project}.etl_data.vendor_product_map`
+    FROM `{project}.{dataset}.dim_vendor_product_map`
     WHERE standard_vendor_id = @vendor_id
       AND LOWER(TRIM(vendor_notation)) = LOWER(TRIM(@notation))
     LIMIT 1
@@ -120,7 +141,7 @@ def check_vendor_cache(
     except Exception as e:
         query_legacy = f"""
         SELECT standard_product_id, sku, product_name, variant_name
-        FROM `{project}.etl_data.vendor_product_map`
+        FROM `{project}.{_CATALOG_DATASET}.dim_vendor_product_map`
         WHERE standard_vendor_id = @vendor_id
           AND LOWER(TRIM(vendor_notation)) = LOWER(TRIM(@notation))
         LIMIT 1
@@ -159,7 +180,7 @@ def check_vendor_cache(
 
     catalog_entries = check_product_catalog_cache(client, standard_vendor_id, artist, album)
     if not catalog_entries:
-        logger.warning("multi-variant cache: product_catalog_cache miss for artist=%r album=%r", artist, album)
+        logger.warning("multi-variant cache: dim_product_catalog_cache miss for artist=%r album=%r", artist, album)
         return {
             "standard_product_id": r.standard_product_id,
             "sku": r.sku,
@@ -220,37 +241,45 @@ def save_product_catalog_cache(
     album: str,
     catalog_entries: list[dict],
 ) -> None:
-    """Upsert catalog_entries into product_catalog_cache."""
+    """Insert catalog entries into dim_product_catalog_cache (one row per entry)."""
+    if not catalog_entries:
+        return
     project = __import__("os").environ.get("GCP_PROJECT", client.project)
-    table_id = f"{project}.etl_data.product_catalog_cache"
-    entries_json = json.dumps(catalog_entries)
+    table_id = f"{project}.{_CATALOG_DATASET}.dim_product_catalog_cache"
+    # Build VALUES for each entry; all share same catalog_generation
+    rows_sql = []
+    params = [
+        bigquery.ScalarQueryParameter("vendor_id", "STRING", standard_vendor_id),
+        bigquery.ScalarQueryParameter("artist", "STRING", (artist or "").strip()),
+        bigquery.ScalarQueryParameter("album", "STRING", (album or "").strip()),
+    ]
+    for i, e in enumerate(catalog_entries):
+        sku = (e.get("sku") or "").strip()
+        product_name = (e.get("product_name") or "").strip()
+        variant_name = (e.get("variant_name") or "").strip()
+        standard_product_id = (e.get("standard_product_id") or generate_standard_product_id(sku) or "").strip()
+        if not sku and not product_name:
+            continue
+        params.extend([
+            bigquery.ScalarQueryParameter(f"sku_{i}", "STRING", sku),
+            bigquery.ScalarQueryParameter(f"product_name_{i}", "STRING", product_name),
+            bigquery.ScalarQueryParameter(f"variant_name_{i}", "STRING", variant_name),
+            bigquery.ScalarQueryParameter(f"standard_product_id_{i}", "STRING", standard_product_id),
+        ])
+        rows_sql.append(
+            f"(@vendor_id, @artist, @album, @sku_{i}, @product_name_{i}, @variant_name_{i}, "
+            f"@standard_product_id_{i}, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())"
+        )
+    if not rows_sql:
+        return
     query = f"""
-    MERGE `{table_id}` T
-    USING (
-        SELECT @vendor_id AS standard_vendor_id, @artist AS artist, @album AS album,
-               PARSE_JSON(@entries) AS catalog_entries
-    ) S
-    ON T.standard_vendor_id = S.standard_vendor_id
-      AND LOWER(TRIM(T.artist)) = LOWER(TRIM(S.artist))
-      AND LOWER(TRIM(T.album)) = LOWER(TRIM(S.album))
-    WHEN MATCHED THEN UPDATE SET
-        catalog_entries = S.catalog_entries,
-        updated_at = CURRENT_TIMESTAMP()
-    WHEN NOT MATCHED THEN INSERT (
-        standard_vendor_id, artist, album, catalog_entries, created_at, updated_at
-    ) VALUES (
-        S.standard_vendor_id, S.artist, S.album, S.catalog_entries,
-        CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()
+    INSERT INTO `{table_id}` (
+        standard_vendor_id, artist, album, sku, product_name, variant_name,
+        standard_product_id, catalog_generation, created_at
     )
+    VALUES {", ".join(rows_sql)}
     """
-    job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ScalarQueryParameter("vendor_id", "STRING", standard_vendor_id),
-            bigquery.ScalarQueryParameter("artist", "STRING", (artist or "").strip()),
-            bigquery.ScalarQueryParameter("album", "STRING", (album or "").strip()),
-            bigquery.ScalarQueryParameter("entries", "STRING", entries_json),
-        ]
-    )
+    job_config = bigquery.QueryJobConfig(query_parameters=params)
     client.query(query, job_config=job_config).result()
 
 
@@ -271,12 +300,12 @@ def save_vendor_mapping(
     catalog_entries: list[dict] | None = None,
 ) -> None:
     """
-    Insert new mapping into vendor_product_map.
+    Insert new mapping into dim_vendor_product_map.
     Single variant: legacy columns only.
-    Multi variant: also saves to product_catalog_cache and stores artist, album, invoice_entry_skus.
+    Multi variant: also saves to dim_product_catalog_cache and stores artist, album, invoice_entry_skus.
     """
     project = __import__("os").environ.get("GCP_PROJECT", client.project)
-    table_id = f"{project}.etl_data.vendor_product_map"
+    table_id = f"{project}.{_CATALOG_DATASET}.dim_vendor_product_map"
     is_multi = bool(
         invoice_entry_skus
         and len(invoice_entry_skus) >= 2
@@ -288,7 +317,7 @@ def save_vendor_mapping(
         try:
             save_product_catalog_cache(client, standard_vendor_id, artist, album, catalog_entries)
         except Exception as e:
-            logger.warning("save_product_catalog_cache failed (table may not exist): %s", e)
+            logger.warning("save dim_product_catalog_cache failed (table may not exist): %s", e)
         try:
             query = f"""
             INSERT INTO `{table_id}` (
@@ -305,7 +334,7 @@ def save_vendor_mapping(
             job_config = bigquery.QueryJobConfig(
                 query_parameters=[
                     bigquery.ScalarQueryParameter("vendor_id", "STRING", standard_vendor_id),
-                    bigquery.ScalarQueryParameter("notation", "STRING", vendor_notation.strip()),
+                    bigquery.ScalarQueryParameter("notation", "STRING", (vendor_notation or "").strip().upper()),
                     bigquery.ScalarQueryParameter("product_id", "STRING", standard_product_id),
                     bigquery.ScalarQueryParameter("sku", "STRING", sku),
                     bigquery.ScalarQueryParameter("product_name", "STRING", product_name),
@@ -338,7 +367,7 @@ def save_vendor_mapping(
         job_config = bigquery.QueryJobConfig(
             query_parameters=[
                 bigquery.ScalarQueryParameter("vendor_id", "STRING", standard_vendor_id),
-                bigquery.ScalarQueryParameter("notation", "STRING", vendor_notation.strip()),
+                bigquery.ScalarQueryParameter("notation", "STRING", (vendor_notation or "").strip().upper()),
                 bigquery.ScalarQueryParameter("product_id", "STRING", standard_product_id),
                 bigquery.ScalarQueryParameter("sku", "STRING", sku),
                 bigquery.ScalarQueryParameter("product_name", "STRING", product_name),

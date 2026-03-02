@@ -10,9 +10,60 @@ Architecture: PRODUCT_IDENTIFICATION_ARCHITECTURE.md
 
 import json
 import logging
+import os
+import re
+from datetime import datetime
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
 logger = logging.getLogger(__name__)
+
+
+def _save_research_to_disk(vendor_notation: str, fact_sheet: dict, decision: dict | None = None) -> None:
+    """
+    Save research (fact_sheet) and optionally decision to disk for judge validation.
+    Enable with SAVE_RESEARCH_TO_DISK=1.
+    Writes to output/research/ — in Docker, use volume mount ./output:/app/output so files persist on host.
+    """
+    if not os.environ.get("SAVE_RESEARCH_TO_DISK"):
+        return
+    try:
+        # Prefer OUTPUT_DIR env (e.g. /app/output in Docker when mounted); else project root / output / research
+        base = Path(os.environ.get("OUTPUT_DIR", Path(__file__).resolve().parent.parent / "output"))
+        out_dir = base / "research"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        slug = re.sub(r"[^\w\-]", "_", vendor_notation[:60]).strip("_") or "unknown"
+        ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        path = out_dir / f"research_{ts}_{slug}.json"
+        payload = {"vendor_notation": vendor_notation, "fact_sheet": fact_sheet}
+        if decision is not None:
+            payload["decision"] = decision
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+        logger.info("research saved to %s", path)
+    except Exception as e:
+        logger.warning("save research to disk failed: %s", e)
+
+
+def _save_result_to_disk(result: dict, vendor_notation: str) -> None:
+    """
+    Save cloud function result to output/result/ when SAVE_RESEARCH_TO_DISK=1.
+    Each identify_and_generate response is written as result_{timestamp}_{slug}.json.
+    """
+    if not os.environ.get("SAVE_RESEARCH_TO_DISK"):
+        return
+    try:
+        base = Path(os.environ.get("OUTPUT_DIR", Path(__file__).resolve().parent.parent / "output"))
+        out_dir = base / "result"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        slug = re.sub(r"[^\w\-]", "_", vendor_notation[:60]).strip("_") or "unknown"
+        ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        path = out_dir / f"result_{ts}_{slug}.json"
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
+        logger.info("result saved to %s", path)
+    except Exception as e:
+        logger.warning("save result to disk failed: %s", e)
 
 import functions_framework
 
@@ -94,57 +145,53 @@ def identify_and_generate(request):
                             "is_draft": False,
                         })
                     total = sum(li.get("total_price") or 0 for li in line_items)
-                    return (
-                        json.dumps({
-                            "standard_product_id": cached.get("standard_product_id"),
-                            "sku": entries[0].get("sku", cached.get("sku")),
-                            "product_name": (entries[0].get("product_name", "") or "").strip().upper(),
-                            "variant_name": (entries[0].get("variant_name", "") or "").strip().upper(),
-                            "vendor_notation": vn_cap,
-                            "matched_product_name": (entries[0].get("product_name", "") or "").strip().upper(),
-                            "vendor_name": vendor_name,
-                            "standard_vendor_id": standard_vendor_id,
-                            "quantity": quantity,
-                            "unit_price": unit_price,
-                            "total_price": total if total else total_price,
-                            "from_cache": True,
-                            "line_items": line_items,
-                        }),
-                        200,
-                        {"Content-Type": "application/json"},
-                    )
-                pn_cap = (cached.get("product_name", "") or "").strip().upper()
-                vrn_cap = (cached.get("variant_name", "") or "").strip().upper()
-                return (
-                    json.dumps({
-                        **{k: v for k, v in cached.items() if not k.startswith("_")},
-                        "product_name": pn_cap,
-                        "variant_name": vrn_cap,
+                    resp = {
+                        "standard_product_id": cached.get("standard_product_id"),
+                        "sku": entries[0].get("sku", cached.get("sku")),
+                        "product_name": (entries[0].get("product_name", "") or "").strip().upper(),
+                        "variant_name": (entries[0].get("variant_name", "") or "").strip().upper(),
                         "vendor_notation": vn_cap,
-                        "matched_product_name": pn_cap,
+                        "matched_product_name": (entries[0].get("product_name", "") or "").strip().upper(),
                         "vendor_name": vendor_name,
                         "standard_vendor_id": standard_vendor_id,
                         "quantity": quantity,
                         "unit_price": unit_price,
-                        "total_price": total_price,
+                        "total_price": total if total else total_price,
                         "from_cache": True,
-                        "line_items": [{
-                            "sku": cached.get("sku", ""),
-                            "product_name": pn_cap,
-                            "variant_name": vrn_cap,
-                            "quantity": qty,
-                            "unit_price": unit_price,
-                            "total_price": total_price,
-                            "standard_product_id": cached.get("standard_product_id"),
-                            "vendor_notation": vn_cap,
-                            "vendor_name": vendor_name,
-                            "standard_vendor_id": standard_vendor_id,
-                            "is_draft": False,
-                        }],
-                    }),
-                    200,
-                    {"Content-Type": "application/json"},
-                )
+                        "line_items": line_items,
+                    }
+                    _save_result_to_disk(resp, vendor_notation)
+                    return (json.dumps(resp), 200, {"Content-Type": "application/json"})
+                pn_cap = (cached.get("product_name", "") or "").strip().upper()
+                vrn_cap = (cached.get("variant_name", "") or "").strip().upper()
+                resp = {
+                    **{k: v for k, v in cached.items() if not k.startswith("_")},
+                    "product_name": pn_cap,
+                    "variant_name": vrn_cap,
+                    "vendor_notation": vn_cap,
+                    "matched_product_name": pn_cap,
+                    "vendor_name": vendor_name,
+                    "standard_vendor_id": standard_vendor_id,
+                    "quantity": quantity,
+                    "unit_price": unit_price,
+                    "total_price": total_price,
+                    "from_cache": True,
+                    "line_items": [{
+                        "sku": cached.get("sku", ""),
+                        "product_name": pn_cap,
+                        "variant_name": vrn_cap,
+                        "quantity": qty,
+                        "unit_price": unit_price,
+                        "total_price": total_price,
+                        "standard_product_id": cached.get("standard_product_id"),
+                        "vendor_notation": vn_cap,
+                        "vendor_name": vendor_name,
+                        "standard_vendor_id": standard_vendor_id,
+                        "is_draft": False,
+                    }],
+                }
+                _save_result_to_disk(resp, vendor_notation)
+                return (json.dumps(resp), 200, {"Content-Type": "application/json"})
             else:
                 logger.info("cache MISS: vendor_notation=%r", vendor_notation[:60])
         else:
@@ -163,6 +210,7 @@ def identify_and_generate(request):
         logger.info("research done: artist=%r album=%r versions=%d", fact_sheet.get("artist"), fact_sheet.get("album"), len(fact_sheet.get("versions", [])))
 
         decision = run_judge_model(vendor_notation, fact_sheet, vendor_name)
+        _save_research_to_disk(vendor_notation, fact_sheet, decision)
         logger.info(
             "judge done: matched_sku=%s confidence=%.2f catalog_entries=%d",
             decision.get("matched_sku", "")[:40],
@@ -223,6 +271,7 @@ def identify_and_generate(request):
         else:
             logger.info("cache SKIP: not saving (is_draft=%s confidence=%.2f)", result.get("is_draft"), result.get("confidence", 0))
         logger.info("identify success: from_cache=false matched_sku=%s", result.get("matched_sku", "")[:40])
+        _save_result_to_disk(result, vendor_notation)
         return (json.dumps(result), 200, {"Content-Type": "application/json"})
         # out = {**result, "fact_sheet": fact_sheet}
         # return (json.dumps(out), 200, {"Content-Type": "application/json"})

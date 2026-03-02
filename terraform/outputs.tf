@@ -21,17 +21,17 @@ output "product_catalog_cache_table_id" {
 # ---------------------------------------------------------------------------
 # Cloud Function outputs
 # ---------------------------------------------------------------------------
-output "cf_identify_url" {
-  description = "URL for identify_and_generate Cloud Function"
-  value       = google_cloudfunctions2_function.identify_and_generate.service_config[0].uri
-}
+# output "cf_identify_url" {
+#   description = "URL for identify_and_generate Cloud Function"
+#   value       = google_cloudfunctions2_function.identify_and_generate.service_config[0].uri
+# }
 
-output "cf_generate_po_url" {
-  description = "URL for generate_po Cloud Function"
-  value       = google_cloudfunctions2_function.generate_po.service_config[0].uri
-}
+# output "cf_generate_po_url" {
+#   description = "URL for generate_po Cloud Function"
+#   value       = google_cloudfunctions2_function.generate_po.service_config[0].uri
+# }
 
-output "cf_sync_to_thrive_url" {
-  description = "URL for sync_to_thrive Cloud Function"
-  value       = google_cloudfunctions2_function.sync_to_thrive.service_config[0].uri
-}
+# output "cf_sync_to_thrive_url" {
+#   description = "URL for sync_to_thrive Cloud Function"
+#   value       = google_cloudfunctions2_function.sync_to_thrive.service_config[0].uri
+# }

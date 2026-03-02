@@ -1,9 +1,9 @@
--- Create vendor_product_map table in etl_data dataset
+-- Create dim_vendor_product_map table in catalog dataset
 -- Cache for vendor notation -> SKU mappings to avoid repeated AI lookups
 -- Run: bq query --use_legacy_sql=false < bigquery/create_vendor_product_map.sql
 -- Or execute in BigQuery Console
 
-CREATE TABLE IF NOT EXISTS `etl_data.vendor_product_map` (
+CREATE TABLE IF NOT EXISTS `catalog.dim_vendor_product_map` (
   standard_vendor_id  STRING      NOT NULL,
   vendor_notation     STRING      NOT NULL,
   standard_product_id STRING      NOT NULL,

@@ -62,12 +62,28 @@ Evidence:
 
     for attempt in range(2):
         response = llm.invoke(messages)
+        # Log truncation diagnostics (finish_reason=MAX_TOKENS means output was cut by token limit)
+        meta = getattr(response, "response_metadata", None) or {}
+        finish_reason = meta.get("finish_reason", "unknown")
+        usage = getattr(response, "usage_metadata", None) or {}
+        logger.info(
+            "judge response: finish_reason=%s input_tokens=%s output_tokens=%s",
+            finish_reason,
+            usage.get("input_tokens", "?"),
+            usage.get("output_tokens", "?"),
+        )
+        if str(finish_reason).upper() in ("MAX_TOKENS", "2") or finish_reason == 2:
+            logger.warning(
+                "judge output TRUNCATED by max_output_tokens limit (finish_reason=%s). "
+                "Consider increasing max_output_tokens in llm.py or reducing catalog_entries in prompt.",
+                finish_reason,
+            )
         content = response.content
         if isinstance(content, list) and content:
             content = content[0].get("text", "") if isinstance(content[0], dict) else str(content[0])
         text = content if isinstance(content, str) else str(content)
         try:
-            return extract_json(text)
+            return extract_json(text, vendor_notation=vendor_notation)
         except ValueError as e:
             if "No JSON" in str(e) and attempt == 0:
                 logger.warning("judge returned no JSON, retrying with JSON-only reminder: %s", str(e)[:100])

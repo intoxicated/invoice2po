@@ -73,5 +73,5 @@ After BigQuery insert, the workflow calls the Thrive Sync Cloud Function to crea
 
 ### Prerequisites
 
-- Create `etl_data.vendor_product_map` table (run `bigquery/create_vendor_product_map.sql`)
+- Create `catalog.dim_vendor_product_map` table (run `bigquery/create_vendor_product_map.sql`)
 - Ensure `etl_data.dim_vendor` has vendor records for cache lookup

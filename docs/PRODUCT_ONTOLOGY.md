@@ -121,7 +121,7 @@ Same SKU always yields the same standard_product_id.
 |-------|------------|---------|
 | dim_product | standard_product_id, product_name, variant_name, sku | Canonical product catalog |
 | vendor_product_map | standard_vendor_id, vendor_notation → standard_product_id, sku, product_name, variant_name; optional artist, album, invoice_entry_skus for multi-variant | Vendor notation → catalog mapping (cache) |
-| product_catalog_cache | standard_vendor_id, artist, album → catalog_entries (JSON) | Full catalog per product; used when notation implies multiple variants |
+| dim_product_catalog_cache | standard_vendor_id, artist, album, sku (one row per entry) | Full catalog per product; latest catalog_generation wins; used when notation implies multiple variants |
 | dim_vendor | standard_vendor_id | Vendor master |
 
 **vendor_product_map** is the learned cache. Single-variant: returns sku, product_name, variant_name directly. Multi-variant: stores pointer (artist, album, invoice_entry_skus) and fetches catalog from **product_catalog_cache** for quantity splitting.

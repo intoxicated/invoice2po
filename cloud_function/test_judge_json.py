@@ -180,6 +180,15 @@ class TestExtractJson(unittest.TestCase):
             extract_json("No JSON here at all")
         self.assertIn("No JSON", str(ctx.exception))
 
+    def test_truncated_fallback_extracts_matched_sku(self):
+        """When JSON is truncated and unparseable, fallback extracts matched_sku via regex."""
+        text = '{"vendor_notation": "NCT JNJM...", "matched_sku": "NCT JNJM-BOTH SIDES-POSTER VER", "matched_produc'
+        result = extract_json(text, vendor_notation="NCT JNJM - 1ST MINI ALBUM")
+        self.assertEqual(result["matched_sku"], "NCT JNJM-BOTH SIDES-POSTER VER")
+        self.assertEqual(result["confidence"], 0.5)
+        self.assertEqual(len(result["catalog_entries"]), 1)
+        self.assertTrue(result["catalog_entries"][0]["is_invoice_item"])
+
 
 if __name__ == "__main__":
     unittest.main()
